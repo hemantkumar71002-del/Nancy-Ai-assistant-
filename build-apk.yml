@@ -1,9 +1,9 @@
 name: Build Nancy AI Assistant APK
 
 on:
-  workflow_dispatch:        # Actions tab -> Run workflow (manual)
+  workflow_dispatch:
   push:
-    tags: ['v*']            # tag like v1.0 -> APK is attached to a Release
+    tags: ['v*']
 
 permissions:
   contents: write
@@ -23,18 +23,24 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Copy web app into www/
+      - name: Copy web app into www
         run: |
           mkdir -p www
           cp index.html sw.js manifest.webmanifest icon-*.png www/
 
       - name: Install Capacitor and add Android
         run: |
+          cat > package.json <<'EOF'
+          {"name":"nancy-ai-assistant","version":"1.0.0","private":true,"dependencies":{"@capacitor/android":"^6.1.2","@capacitor/cli":"^6.1.2","@capacitor/core":"^6.1.2"}}
+          EOF
+          cat > capacitor.config.json <<'EOF'
+          {"appId":"com.nancyai.assistant","appName":"Nancy AI Assistant","webDir":"www","server":{"androidScheme":"https"},"android":{"allowMixedContent":false}}
+          EOF
           npm install
           npx cap add android
           npx cap sync android
 
-      - name: Permissions (camera, mic, internet)
+      - name: Permissions
         run: |
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application#' $M
@@ -65,8 +71,8 @@ jobs:
           name: Nancy-AI-Assistant-apk
           path: Nancy-AI-Assistant.apk
 
-      - name: Attach to Release (tag builds)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Attach to release v1.0
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v1.0
           files: Nancy-AI-Assistant.apk
