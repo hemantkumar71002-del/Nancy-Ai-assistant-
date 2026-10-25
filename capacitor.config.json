@@ -1,0 +1,7 @@
+{
+  "appId": "com.nancyai.assistant",
+  "appName": "Nancy AI Assistant",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}
